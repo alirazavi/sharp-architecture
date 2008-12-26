@@ -1,0 +1,254 @@
+----------------------------------------------
+----------------------------------------------
+Roadmap for 1.0 Release
+----------------------------------------------
+----------------------------------------------
+
+* Add WCF integration
+* Support multiple databases
+* Add examaple of using a Unit of Work to encapsulate non-trivial controller logic
+
+----------------------------------------------
+----------------------------------------------
+On the trunk
+----------------------------------------------
+----------------------------------------------
+
+New and exciting:
+* CRUD Scaffolding generation is now available - see the documentation for details
+* Added CommonServiceLocator to provide IoC agnosticism to the non-web layers
+* You no longer need to register custom repositories to Castle Windsor
+* Added formal solution structure to help organize applications
+* You no longer need to install ASP.NET MVC to create and edit S#arp Architecture projects
+
+-------
+
+Assembly Dependencies:
+* ASP.NET MVC Beta
+* Castle 1.0 RC3
+* Fluent NHibernate 0.1
+* Json.NET 3.5 Beta 1
+* Microsoft.Practices.ServiceLocation 1.0 (CommonServiceLocator)
+* NHibernate 2.0.1
+* NHibernate.Validator 1.0
+* MvcContrib Revision 635 (later than 0.0.1.137 release from CodePlex)
+* Rhino.Mocks 3.5.0.1337
+* System.Data.SQLite.DLL 1.0.60.0
+
+-------
+
+Changes to /src:
+
+SharpArch Solution
+* All projects are now strongly signed with exception of SharpArch.Web.Castle (The MvcContrib dependency isn't signed; there's only one class in this SharpArch library, so you can move it to your project to sign everything.)
+
+SharpArch.Core
+* BaseObject.cs ~ Introduced this base class to consolidate object comparison functionality used by both DomainObject and ValueObject
+* BREAKING CHANGE ~ EnumDescription.cs:  This class has been dropped from the library; it doesn't have anything to do with S#arp Architecture; if you miss it dearly, you can find it described at http://devlicio.us/blogs/billy_mccafferty/archive/2006/10/16/Show-User_2D00_Friendly-enum-Translations.aspx
+* BREAKING CHANGE ~ Renamed IDomainObject.cs to IValidatable.cs to reflect what it's really doing; also simplified IValidatable to contain simply IsValid()
+* ValueObject.cs:  Added this value-object base class to support this missing base class for DDD
+
+SharpArch.Data
+* BREAKING CHANGE ~ Renamed Repository.GetByProperties(), Repository.GetUniqueByProperties(), Repository.GetByExample(), Repository.GetUniqueByExample() to FindAll(properties/example) and FindOne(properties/example)
+* BREAKING CHANGE ~ Repository.cs:  This now implements the simpler IRepository<> instead of INHibernateRepository<>; Moved the NHibernate specific methods Get(id, lockMode), Load(id), Load(id, lockMode), FindAll(exampleInstance), FindOne(exampleInstance), Save(entity), Update(entity), Evict(entity) to NHibernateRepository<>; If you write a custom repository which needs to implement methods from INHibernateRepository<>, you'll want to inherit from this new NHibernateRepository<> class
+
+SharpArch.Web
+* /Areas/AreaRouteHelper.cs:  New class for supporting controller/view "areas"
+* /Areas/AreaViewEngine.cs:  New class for replacing the default view engine for supporting use of areas
+
+SharpArch.Web.Castle
+* Added this library to house extension methods for Castle related to registering controllers and custom repositories
+
+Northwind Solution
+* Modified solution structure to reflect the following
+   /MyProject - Contains MyProject.sln
+      /app - Contains the core project layers.
+         /MyProject.Controllers 
+         /MyProject.Core 
+         /MyProject.Data 
+         /MyProject.Web 
+      /lib - Contains the solution items for the deployable application. 
+      /db - Contains database schema information; e.g., the result of scaffolding and/or NHibernate's schema export. 
+      /docs - Project documents. 
+      /logs - Output location for log files. 
+      /tests 
+         /MyProject.Tests 
+      /tools 
+         /build - Empty folder for housing build related stuff. 
+         /lib - Contains the solution items for the tests project and all other non-deployable assemblies. 
+         /CrudScaffolding - Customizable CRUD, scaffolding generation code.
+* Modified solution to accommodate controller/view "areas"; the change were numerous and should be reviewed within the patch associated with http://code.google.com/p/sharp-architecture/issues/detail?id=27
+* Moved all employee related artifacts (controller, domain, views, etc.) under a namespace of "Organization" to show how areas are used
+
+Northwind.Controllers
+* Added a reference to Microsoft.Practices.ServiceLocation.dll
+* RouteRegistrar.cs:  Registered map for "Root"; added ignore for favicon.ico
+
+Northwind.Core
+* Added a reference to Microsoft.Practices.ServiceLocation.dll
+
+Northwind.Data
+* Added a reference to Microsoft.Practices.ServiceLocation.dll
+
+Northwind.Tests
+* Moved project to /NorthwindSample/tests/Northwind.Tests
+* Added a reference to Microsoft.Practices.ServiceLocation.dll, Castle.Core.dll, Castle.MicroKernel.dll, Castle.Windsor.dll to support configuring IoC from the tests layer
+* /Northwind.Controllers/RouteRegistrarTests.cs:  Added call to "Clear()" the RouteTable during SetUp()
+* /Northwind.Data/NHibernateMaps/MappingIntegrationTests.cs:  Changed relative path to account for new solution structure; e.g., "../../../../app/Northwind.Web/Hibernate.cfg.xml"
+
+Northwind.Web
+* Added a reference to Microsoft.Practices.ServiceLocation.dll
+* Default.aspx.cs:  Modified RewritePath to pass in false for the rebasePath parameter
+* Global.asax.cs: Added CommonServiceLocator support and removed implementation of IContainerAccessor (use CSL instead)
+* Northwind.Web.csproj:  Removed "{603c0e0b-db56-11dc- 
+be95-000d561079b0};" from top to remove dependency on ASP.NET MVC being installed
+* web.config:  Changed relative path to log4net output file to reflect new solution structure; e.g., <file value="../../logs/Northwind.Web.log"/>
+* /CastleWindsor/CastleExtensions.cs:  Added extension to find interfaces for custom repositories
+* /CastleWindsor/ComponentRegistrar.cs:  Replaced manual custom repository registrations with auto-registration of custom repositories; Added registration of IRepositoryWithTypedId and INHibernateRepositoryWithTypedId; Modified auto-bindings to account for the new NHibernateRepository<> and NHibernateRepositoryWithTypedId<,> classes
+
+Northwind Solution Items
+* Added NorthwindSample/Solution Items/CommonServiceLocator.WindsorAdapter.dll
+* Added NorthwindSample/Solution Items/Microsoft.Practices.ServiceLocation.dll
+
+----------------------------------------------
+----------------------------------------------
+0.9.114 - ASP.NET MVC Beta, NH 2.0.1, NHibernate.Validator, Fluent NHibernate, Castle Windsor
+----------------------------------------------
+----------------------------------------------
+
+New and exciting:
+* A Visual Studio 2008 template project has been added under /TemplatesAndCodeGen to get your own S#arp Architecture project up and running quickly
+* Replaced Ninject with Castle Windsor
+* Added support for behavior driven unit testing
+* Unit tests now use an in-memory SQLite database for testing data access methods along with providing an integration verification mechanism to check mappings against a live database
+
+-------
+
+Assembly Dependencies:
+* ASP.NET MVC Beta
+* Castle 1.0 RC3
+* Fluent NHibernate 0.1
+* NHibernate 2.0.1
+* NHibernate.Validator 1.0
+* MvcContrib Revision 635 (later than 0.0.1.137 release from CodePlex)
+* Rhino.Mocks 3.5.0.1337
+* System.Data.SQLite.DLL 1.0.60.0
+
+-------
+
+Changes to /src:  
+
+** Search for "BREAKING CHANGE" below to find each of the breaking changes **
+
+SharpArch.Data
+* BREAKING CHANGE ~ Moved NHibernate/RepositoryUnitTestsBase.cs to SharpArch.Testing.NUnit/NHibernate and renamed it to be DatabaseRepositoryTestsBase.  To fix, simply add a "using SharpArch.Testing.NUnit.NHibernate;" to any test fixture class which inherits from RepositoryUnitTestsBase and rename the parent to DatabaseRepositoryTestsBase
+
+SharpArch.Testing
+* Added this new, stand-alone library to consolidate general, unit testing utilities
+* PersistentObjectIdSetter.cs:  Used to set the ID of a persistent object for unit testing purposes; this class was originally in Northwind.Tests
+
+SharpArch.Testing.NUnit
+* Added this new, stand-alone library to support NUnit
+* BehaviorSpecificiationTestsBase.cs:  This optional text fixture base class provides a base class for BDD unit tests, as described at http://flux88.com/blog/the-transition-from-tdd-to-bdd/.
+* SyntaxHelpers.cs:  This optional extensions class adds a number of fluent NUnit syntax capabilities.  To use, simply add a reference to SharpArch.Testing.NUnit to have them available from your unit tests.
+* NHibernate/DatabaseRepositoryTestsBase.cs:  This is the old SharpArch.Data/NHibernate/RepositoryUnitTestsBase.cs class provided for backwards compatibility.  The preferred mechanism for database unit testing is using an in-memory database, described next.
+* NHibernate/RepositoryBehaviorSpecificationTestsBase.cs:  Provides an optional base class for developing behavior driven unit tests against an auto-generated database, suggested to be in-memory, SqlLite database.  (See Northwind.Tests for an example.)
+* NHibernate/RepositoryTestsBase.cs:  Behaves similarly to the old SharpArch.Data/NHibernate/RepositoryUnitTestsBase.cs but auto-generates the database, suggested to be in-memory, SqlLite database.  (See Northwind.Tests for an example.)
+
+SharpArch.Web
+* BREAKING CHANGE ~ Ninject/ControllersAutoBindModule.cs:  This class has been deleted.  If you need it for backwards compatibility, you can get the code for this class from version 0.9.72 and put it into your application.
+
+SharpArch Solution Items
+* BREAKING CHANGE ~ Deleted Ninject.Conditions.dll and Ninject.Core.dll.  If you need them for backwards compatibility, you can get them from version 0.9.72 and add them to your application.
+* Updated MvcContrib*.dll dependencies
+
+Northwind.Controllers:
+* RouteRegistrar.cs:  Added this class to pull route registration into the controllers layer.
+
+Northwind.Web
+* /CastleWindsor/:  Added support for Castle Windsor configuration within the class ComponentRegistrar.cs
+* /NinjectModuldes/:  Deleted this folder and replaced it with /CastleWindsor/
+* Hibernate.cfg.xml:  Extracted NHibernate settings to this file and set the "Copy to Output Directory" to "Copy always"
+* Global.asax.cs:  Modified Global.asax.cs to pass in path to the HBM dll using "~" for the relative path; dropped the optional  path to the Hibernate.cfg.xml now that it's being copied to the output directory (i.e., to the /bin directory); moved route registration to /Northwind.Controllers/RouteRegistrar.cs; added Castle Windsor configuration.
+* web.config:  Dropped assembly redirect for Ninject and added log4net configuration
+
+Northwind.Tests
+* App.config:  Removed "nhibernate.config.path" from appSettings; it now uses Hibernate.cfg.xml, discussed next
+* Hibernate.cfg.xml:  Added this file and set its "Copy to Output Directory" to "Copy always"; this now uses an in-memory SqlLite database for DB tests
+* All DB test fixtures now inherit from either RepositoryTestsBase or RepositoryBehaviorSpecificationTestsBase using the in-memory database
+* Northwind.Data/NHibernateMaps/MappingIntegrationTests.cs:  Test fixture which tests every mapping file against the database sepcified in the application's "live" database NHibernate configuration file (e.g., the one found within the Northwind.Web project); this ensures that the "live" database is compliant with the mapping files since the unit tests are now using an in-memory database.
+
+Northwind.TestsUsingDevelopmentDatabase
+* Added this new, stand-alone library to demonstrate unit testing against a "live" development database.  The preferred mechanism is to use an in-memory database, as demonstrated within Northwind.Tests, but this is here to show backward compatibility for the previous approach.
+
+Northwind Solution Items
+* Deleted Ninject.Conditions.dll, Ninject.Core.dll and MvcContrib.Ninject.dll
+* Added Castle.MicroKernel.dll, Castle.Windsor.dll and MvcContrib.Castle.dll
+
+** Version Acknowledgements **
+* A big thanks goes out to Lee Carter for providing code for running DB unit tests within an in-memory SQLLite database.
+
+----------------------------------------------
+----------------------------------------------
+0.9.72 - ASP.NET MVC Beta, NH 2.0.1, Ninject 1.0, NHibernate.Validator 1.0, Fluent NHibernate 0.1
+----------------------------------------------
+----------------------------------------------
+
+Migrating from 0.8.1 to 0.9.0 (see the Northwind sample code for implementation examples):
+* Follow instructions for upgrading to ASP.NET MVC Beta.  There were respective modifications made to web.config and assembly dependencies.  Also included changes to Global.asax.cs and the inclusion of Default.aspx.cs
+* Change the name of the "web.config" AppSetting within Northwind.Tests/App.config to "nhibernate.config.path"
+* Add a new AppSetting within Northwind.Tests/App.config called "nhibernate.mapping.assembly" which contains the name of the assembly which holds the mapping artifacts
+* Add an assembly redirect for NHibernate to app.config and web.config; Fluent NHibernate is a little behind
+* Change any calls to myDao.CommitChanges() to myDao.DbContext.CommitChanges()
+* Change any references to DomainSignatureComparable to DomainObject
+* If you've overridden HasSameDomainObjectSignatureAs, changes the parameter type to IDomainObject (instead of DomainSignatureComparable)
+* Rename references to SharpArch.Core.PersistenceSupport.IDao/IDaoWithTypedId to IRepository/IRepositoryWithTypedId (as a number of developers have rightly indicated is more inline with DDD)
+* Rename references to SharpArch.Data.NHibernate.GenericDao/GenericDaoWithTypedId to Repository/RepositoryWithTypedId
+* Rename references to SharpArch.Data/NHibernate/DaoTests.cs to RepositoryUnitTestsBase.cs
+* Greatly simplified IRepository and moved NHibernate specific methods to SharpArch.Core/PersistenceSupport/NHibernate/INHibernateRepository.cs; consequently, SharpArch.Core/PersistenceSupport/IRepository.cs, which was IDao.cs, now contains the following breaking changes:
+   - LoadAll was changed to GetAll (changed to standardize "Get" as the retrieval keyword);
+   - Get(id, lockMode), GetByExample, GetUniqueByExample, Load(id), Load(id, lockMode), Save, Update and Evict were all moved to SharpArch.Core.PersistenceSupport.NHibernate.INHibernateRepository.
+IRepository was simplified to provide a simpler mechanism that is more NHibernate agnostic and is simpler to understand and use.  You may still wish to use the NHibernate-specific one.  Consequently, decide if you'd like to use SharpArch.Core.PersistenceSupport.IRepository/IRepositoryWithTypedId or SharpArch.Core.PersistenceSupport.NHibernate.INHibernateRepository/INHibernateRepositoryWithTypedId and adjust your code, accordingly.  There's nothing to stop you from using IRepository most of the time and INHibernateRepository on occassion...but I'd only recommend using it when absolutely necessary.  For example, the only time the Northwind sample uses it is to support Save vs. Update for objects with assigned IDs (which are a bad practice to use anyway).
+* Optionally rename your *Dao.cs classes to *Repository.cs to be consistent with the IRepository base interface.
+* Optionally move NHibernate settings out of web.config into Hibernate.cfg.xml (the Northwind contains an example); if you do so, be sure to change the path in MyProject.Tests/app.config to point to the externalized file
+* Optionally migrate your HBM files to Fluent NHibernate class maps within MyProject.Data.  If you do so, be sure to delete the HBMs (or simply set their compile behavior to "Content" rather than "Embedded Resource" during the migration.  You'll then need to change the mapping assembly information for NHibernate.  REGARDLESS, you'll need to remove the assembly mapping property from your NHibernate configuration settings and modify the NHibernate session initialization within Global.asax.cs; see Northwind.Web/Global.asax.cs for an example.  Currently, you have to provide the full path to the requested resources; I'm looking to simplify this if possible.
+
+*** Non Breaking Changes ***
+
+The documentation within <root>/docs has been completely updated; I highly recommend you review it to see changes in action, particularly with respect to Fluent NHibernate.
+
+Modifications to <root>/bin:
+* All dependencies needed for your own project are now included in the bin folder
+
+Modifications to SharpArch:
+* SharpArch.Core/PersistenceSupport:  Added IPersistentObject and IDomainSignatureComparable to provide your own implementation, if you feel so inclined
+* SharpArch.Data/NHibernate/NHibernateSession.cs:  Inclusion of NHibernate.Validator.  Optional NHibernate.Validator config file may be passed to NHibernateSession.Init within Global.asax.cs
+* SharpArch.Data/NHibernate/NHibernateSession.cs:  Init has been overloaded to to accept ISessionStorage without config file info.
+* Marked both DomainSignatureAttribute and DomainSignatureComparable as Serializable (thanks athmer!)
+* The Equals/GetHashCode has been split; Equals no longer uses the result of GetHashCode for the basis of equality checking.  The affected classes include SharpArch.Core/DomainSignatureComparable.cs and SharpArch.Core/PersistenceSupport/PersistentObject.cs.  Although the underlying mechanism for these methods were altered, it should introduce no breaking changes.
+* The methods GetByProperties(IDictionary<string, object>, propertyValuePairs) and GetUniqueByProperties have been added to IRepository and Repository.  A unit test using this feature has been added to Northwind.Tests/Northwind.Data/CustomerDaoTests.cs
+* IRepository now exposes IDbContext which provides capabilities such as CommitChanges, Begin/Commit/RollbackTransaction
+* Added validation support methods to DomainObject
+
+Modifications to Northwind sample:
+* Added full CRUD with validation for employee objects
+* Modified Northwind.Core/Order.cs to show an example of overriding HasSameDomainObjectSignatureAs()
+* Updated dynamic links to use Html.ActionLink
+* Added a many-to-many example; specifically:
+  - Northwind.Core
+    * Employee has a many-to-many relationship to Territory objects.
+    * Territory has a many-to-many relationship back to Employee objects.  This is the inverse side of the relationship.
+    * Region has a one-to-many relationship to Territory; the relationship is defined in the Territory HBM.
+
+  - Northwind.Tests
+    * Northwind.Core/RegionTests.cs, TerritoryTests.cs, and EmployeeTests.cs test the domain model of the new classes.
+    * Northwind.Data/EmployeeDaoTests.cs and TerritoryDaoTests.cs test the many-to-many relationships in the database along with the many-to-one from Territory to Region.
+* Made general clean ups to make the code simpler and with less typing (e.g., changed "<%= (ViewData.Model as Customer).CompanyName%>" to simply "<%= ViewData.Model.CompanyName%>")
+
+----------------------------------------------
+----------------------------------------------
+0.8.1 - MVC Preview 5, NH 2.0.1 and Ninject 1.0
+----------------------------------------------
+----------------------------------------------
+
+Baseline history record

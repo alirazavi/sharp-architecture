@@ -1,0 +1,55 @@
+﻿<#+
+public abstract class BaseTemplate : Template
+{
+	public BaseTemplate(string solutionName, string domainObjectName, NameValueCollection properties, string[] namespaceHierarchy) {
+		this.solutionName = solutionName;
+		this.namespaceHierarchy = namespaceHierarchy;
+		this.domainObjectName = domainObjectName;
+		this.properties = properties;
+	}
+	
+	protected NameValueCollection Properties {
+		get { return properties; }
+	}
+
+	protected string SolutionName {
+		get { return solutionName; }
+	}
+	
+	protected string[] NamespaceHierarchy {
+		get { return namespaceHierarchy; }
+	}
+	
+	protected string DomainObjectName {
+		get { return domainObjectName; }
+	}
+	
+	protected string AppendNamespaceHierarchyTo(string namespacePath) {
+		if (NamespaceHierarchy == null || NamespaceHierarchy.Length == 0)
+			return namespacePath;
+			
+		foreach (string namespaceToAppend in NamespaceHierarchy) {
+			namespacePath += "." + namespaceToAppend;
+		}
+		
+		return namespacePath;
+	}
+	
+	protected string DomainObjectNamePlural {
+		get { return Pluralizer.ToPlural(domainObjectName); }
+	}
+
+	protected string DomainObjectNameCamelCase {
+		get { return domainObjectName.Substring(0, 1).ToLower() + domainObjectName.Substring(1); }
+	}
+
+	protected string DomainObjectNamePluralCamelCase {
+		get { return DomainObjectNamePlural.Substring(0, 1).ToLower() + DomainObjectNamePlural.Substring(1); }
+	}
+	
+	private readonly NameValueCollection properties;
+	private readonly string[] namespaceHierarchy;
+	private readonly string solutionName;
+	private readonly string domainObjectName;
+}
+#>
