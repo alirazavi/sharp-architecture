@@ -36,14 +36,15 @@ namespace SharpArch.Core
         ///
         /// Lazily loads the domain signature properties
         /// </summary>
-        protected override IEnumerable<PropertyInfo> SignatureProperties {
+        public override IEnumerable<PropertyInfo> SignatureProperties {
             get {
-                if (domainSignatureProperties == null) {
-                    domainSignatureProperties = GetType().GetProperties()
-                        .Where(p => Attribute.IsDefined(p, typeof(DomainSignatureAttribute), true));
-                }
+                IEnumerable<PropertyInfo> properties;
+                
+                if (signaturePropertiesDictionary.TryGetValue(GetType(), out properties)) 
+                    return properties;
 
-                return domainSignatureProperties;
+                return (signaturePropertiesDictionary[GetType()] = 
+                    GetType().GetProperties().Where(p => Attribute.IsDefined(p, typeof(DomainSignatureAttribute), true)).ToList());
             }
         }
 
@@ -82,9 +83,10 @@ namespace SharpArch.Core
         private ValidatorEngine validator;
 
         /// <summary>
-        /// Talk to this property via the protected DomainSignatureProperties property; that getter lazily 
-        /// initializes this member.
+        /// This static member caches the domain signature properties for each type inheriting
+        /// from <see cref="DomainObject" /> to avoid looking them up for each instance of the same type.
         /// </summary>
-        private IEnumerable<PropertyInfo> domainSignatureProperties;
+        private static readonly Dictionary<Type, IEnumerable<PropertyInfo>> signaturePropertiesDictionary = 
+            new Dictionary<Type, IEnumerable<PropertyInfo>>();
     }
 }
