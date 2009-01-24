@@ -1,4 +1,4 @@
-#Starting page for the Sharp Architecture Wiki
+#Starting page for the Sharp Architecture Wiki.
 
 == NHibernate.LINQ ==
 
