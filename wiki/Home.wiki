@@ -1,5 +1,5 @@
-#summary One-sentence summary of this page.
+#Starting page for the S#arp Architecture Wiki
 
 == NHibernate.LINQ ==
 
-* [Example of using NHibernate.LINQ]
+* ExamplesOfUsingNhibernateLinq
